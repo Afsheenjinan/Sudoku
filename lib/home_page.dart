@@ -14,6 +14,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool editMode = false;
+  PencilMark _mode = PencilMark.Normal;
+
+  List<bool> _isButtonSelected = [true, false, false, false];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,24 +37,70 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            Switch(
-              value: editMode,
-              onChanged: (bool state) => setState(() => editMode = !editMode),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Edit Mode"),
+                    Switch(value: editMode, onChanged: (bool state) => setState(() => editMode = !editMode)),
+                  ],
+                ),
+                SizedBox(height: 40),
+                NumberPad(width: 180, mode: _mode),
+                SizedBox(height: 40),
+                ToggleButtons(
+                  fillColor: Colors.transparent,
+                  borderRadius: BorderRadius.circular(5.0),
+                  constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
+                  onPressed: _changeMode,
+                  isSelected: _isButtonSelected,
+                  children: ["Number", "Center", "Corner", "Color"].map((e) => Text(e)).toList(),
+                ),
+              ],
             ),
-            Container(
-              color: Colors.blue,
-              child: Column(
-                children: [
-                  SizedBox(height: 50, width: 50, child: Text("15")),
-                  SizedBox(height: 50, width: 50, child: Text("15")),
-                ],
-              ),
-            ),
-            const NumberPad(width: 180),
+            editMode
+                ? ColoredBox(
+                    color: Colors.blue.shade100,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      // mainAxisAlignment: MainAxisAlignment.center,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          tooltip: "Bell Button",
+                          splashRadius: 18,
+                          color: Colors.green,
+                          icon: Icon(Icons.add_alert),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          tooltip: "Left",
+                          splashRadius: 18,
+                          color: Colors.green,
+                          icon: Icon(Icons.west_sharp),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                  )
+                : SizedBox(width: 40),
           ],
         ),
       ),
     );
+  }
+
+  void _changeMode(int index) {
+    int oldIndex = _isButtonSelected.indexOf(true);
+    if (oldIndex != index) {
+      _isButtonSelected[oldIndex] = false;
+      _isButtonSelected[index] = true;
+      _mode = PencilMark.values[index];
+
+      setState(() {});
+    }
   }
 }
 

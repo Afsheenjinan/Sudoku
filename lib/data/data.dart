@@ -1,3 +1,5 @@
+enum PencilMark { Normal, Center, Corner, Color }
+
 List<List<int>> grid = List.generate(9, (index) => [1, 2, 9, 7, 5, 6, 3, 8, 4]..shuffle());
 
 class GridItems {
