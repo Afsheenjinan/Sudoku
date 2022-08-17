@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'data/data.dart';
+import '../data/data.dart';
 
 class NumberPad extends StatelessWidget {
   final double _width;

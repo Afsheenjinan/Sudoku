@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'background.dart';
-import 'number_grid.dart';
-import 'num_pad.dart';
-import 'data/data.dart';
+import '../widgets/background.dart';
+import '../widgets/number_grid.dart';
+import '../widgets/num_pad.dart';
+import '../data/data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
                   constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
                   onPressed: _changeMode,
                   isSelected: _isButtonSelected,
-                  children: ["Number", "Center", "Corner", "Color"].map((e) => Text(e)).toList(),
+                  children: ["Number", "Center", "Corner", "Color"].map((item) => Text(item)).toList(),
                 ),
               ],
             ),
