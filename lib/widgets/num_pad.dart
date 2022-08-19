@@ -1,59 +1,73 @@
 import 'package:flutter/material.dart';
 
 import '../data/data.dart';
+import '../script/functions.dart';
 
 class NumberPad extends StatelessWidget {
-  final double _width;
+  double _width;
   final PencilMark _mode;
-  NumberPad({Key? key, required double width, required PencilMark mode})
-      : _width = width,
+  NumberPad({Key? key, required double buttonWidth, required PencilMark mode})
+      : _width = buttonWidth,
         _mode = mode,
         super(key: key);
-  static const List<int?> numberPattern = [7, 8, 9, 4, 5, 6, 1, 2, 3, null, 0, null];
-  List<MaterialColor> colourPattern = [
+  static const List<List<int?>> numberPattern = [
+    [7, 8, 9],
+    [4, 5, 6],
+    [1, 2, 3],
+    [0]
+  ];
+  List colourPattern = [
+    Colors.blue.shade800,
     Colors.blue,
-    Colors.green,
-    Colors.red,
-    Colors.purple,
-    Colors.grey,
+    Colors.blue.shade200,
+    Colors.cyan.shade300,
+    Colors.green.shade700,
     Colors.yellow,
     Colors.orange,
-    Colors.amber,
-    Colors.pink,
     Colors.brown,
-    Colors.cyan,
-    Colors.indigo,
+    Colors.red.shade700,
+    Colors.purple.shade700,
+    Colors.pink.shade300,
+    Colors.grey.shade300,
+    Colors.grey,
+    Colors.grey.shade700,
+    // Colors.grey.shade800,
+
+    // Colors.black,
   ];
 
   @override
   Widget build(BuildContext context) {
-    List pattern = (_mode == PencilMark.Color) ? colourPattern : numberPattern;
+    int patternLength = (_mode == PencilMark.Color) ? colourPattern.length : 10;
+    int _axisCount = Sqrt(patternLength).round();
+    double _gap = _width / 3;
     return SizedBox(
-      height: _width,
-      width: _width / 4.2 * 3,
-      child: GridView.count(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        children: List.generate(pattern.length, (index) {
-          dynamic value = pattern[index];
-          return (value != null)
-              ? InkWell(
+      width: _width * _axisCount + (_axisCount - 1) * _gap + _axisCount,
+      child: Wrap(
+        textDirection: TextDirection.rtl,
+        alignment: WrapAlignment.center,
+        runSpacing: _gap,
+        spacing: _gap,
+        children: List.generate(patternLength, (index) {
+          dynamic value = (patternLength - 1) - index;
+          return SizedBox(
+            height: _width,
+            width: _width,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: () => print(value),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(width: 0.25),
+                  backgroundBlendMode: BlendMode.multiply,
                   borderRadius: BorderRadius.circular(4),
-                  // overlayColor: MaterialStateProperty.all(Colors.blueGrey),
-                  onTap: () => print(value),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 0.25),
-                      backgroundBlendMode: BlendMode.multiply,
-                      borderRadius: BorderRadius.circular(4),
-                      color: (_mode == PencilMark.Color) ? value : Colors.transparent,
-                    ),
-                    child: getChild(value),
-                  ),
-                )
-              : const SizedBox.expand();
-        }),
+                  color: (_mode == PencilMark.Color) ? colourPattern[value] : Colors.transparent,
+                ),
+                child: getChild(value),
+              ),
+            ),
+          );
+        }, growable: false),
       ),
     );
   }
@@ -89,6 +103,12 @@ class NumberPad extends StatelessWidget {
         );
       default:
         return SizedBox.expand();
+      // return Center(
+      //   child: Text(
+      //     "$value",
+      //     style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
+      //   ),
+      // );
     }
   }
 }

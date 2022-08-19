@@ -7,7 +7,7 @@ double PI = math.pi;
 double Degrees(double rad) => rad / math.pi * 180;
 double Radians(double deg) => deg / 180 * math.pi;
 
-double Sqrt(double x) => math.sqrt(x);
+double Sqrt(num x) => math.sqrt(x);
 
 double Sin(double x) => math.sin(Radians(x));
 double Cos(double x) => math.cos(Radians(x));
