@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/background.dart';
@@ -19,10 +17,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool editMode = false;
   PencilMark _mode = PencilMark.Normal;
+  NumberMode _numberMode = NumberMode.Number;
 
-  List<bool> _isButtonSelected = [true, false, false, false];
+  final List<bool> _pencilMarkSelected = [true, false, false];
+  final List<bool> _NumberModeSelected = [true, false, false];
 
   final FocusNode _node = FocusNode();
+  Set<LogicalKeyboardKey> ctrlKeys = {LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight};
+  Set<LogicalKeyboardKey> shiftKeys = {LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight};
 
   Set<LogicalKeyboardKey> keySet = {};
 
@@ -67,23 +69,34 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Edit Mode"),
+                        const Text("Edit Mode"),
                         Switch(value: editMode, onChanged: (bool state) => setState(() => editMode = !editMode)),
                       ],
                     ),
-                    SizedBox(height: 40),
-                    NumberPad(buttonWidth: 36, mode: _mode),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
+                    NumberPad(buttonWidth: 36, pencilMark: _mode, numberMode: _numberMode),
+                    const SizedBox(height: 40),
                     ToggleButtons(
                       fillColor: Colors.transparent,
                       borderRadius: BorderRadius.circular(5.0),
                       constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
-                      onPressed: _changeMode,
-                      isSelected: _isButtonSelected,
-                      children: ["Number", "Center", "Corner", "Color"].map((item) => Text(item)).toList(),
+                      onPressed: _changePencilMark,
+                      isSelected: _pencilMarkSelected,
+                      children: ["Normal", "Center", "Corner"].map((item) => Text(item)).toList(),
+                    ),
+                    const SizedBox(height: 40),
+                    ToggleButtons(
+                      fillColor: Colors.transparent,
+                      borderRadius: BorderRadius.circular(5.0),
+                      constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
+                      onPressed: _changeNumberMode,
+                      isSelected: _NumberModeSelected,
+                      children: ["Number", "Letter", "Color"].map((item) => Text(item)).toList(),
                     ),
                   ],
                 ),
+
+                // TODO :add lines and other drawings
                 editMode
                     ? ColoredBox(
                         color: Colors.blue.shade100,
@@ -96,20 +109,20 @@ class _HomePageState extends State<HomePage> {
                               tooltip: "Bell Button",
                               splashRadius: 18,
                               color: Colors.green,
-                              icon: Icon(Icons.add_alert),
+                              icon: const Icon(Icons.add_alert),
                               onPressed: () {},
                             ),
                             IconButton(
                               tooltip: "Left",
                               splashRadius: 18,
                               color: Colors.green,
-                              icon: Icon(Icons.west_sharp),
+                              icon: const Icon(Icons.west_sharp),
                               onPressed: () {},
                             ),
                           ],
                         ),
                       )
-                    : SizedBox(width: 40),
+                    : const SizedBox(width: 40),
               ],
             ),
           ),
@@ -118,44 +131,64 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _changeMode(int index) {
-    int oldIndex = _isButtonSelected.indexOf(true);
+  void _changePencilMark(int index) {
+    int oldIndex = _pencilMarkSelected.indexOf(true);
     if (oldIndex != index) {
-      _isButtonSelected[oldIndex] = false;
-      _isButtonSelected[index] = true;
+      _pencilMarkSelected[oldIndex] = false;
+      _pencilMarkSelected[index] = true;
       _mode = PencilMark.values[index];
+      setState(() {});
+    }
+  }
+
+  void _changeNumberMode(int index) {
+    int oldIndex = _NumberModeSelected.indexOf(true);
+    if (oldIndex != index) {
+      _NumberModeSelected[oldIndex] = false;
+      _NumberModeSelected[index] = true;
+      _numberMode = NumberMode.values[index];
       setState(() {});
     }
   }
 
   KeyEventResult _onKeyEvent(KeyEvent event) {
     LogicalKeyboardKey logicalKeyboardKey = event.logicalKey;
+
+    Set<LogicalKeyboardKey> ctrl_shift = ctrlKeys.union(shiftKeys);
+
+    bool contain = ctrl_shift.contains(logicalKeyboardKey); // pressed value is ctrl / shift
+
     if (event is KeyDownEvent) {
       print(event.character);
-      keySet.add(logicalKeyboardKey);
-      print(keySet);
-      _mode = getMode(keySet);
+
+      if (contain) {
+        keySet.add(logicalKeyboardKey);
+      }
+      // print(keySet);
+      bool isCtrlPressed = keySet.any(ctrlKeys.contains);
+      bool isShiftPressed = keySet.any(shiftKeys.contains);
+
+      _mode = getMode(isCtrlPressed, isShiftPressed);
       // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
     } else {
       keySet.remove(logicalKeyboardKey);
-      _mode = getMode(keySet);
+      bool isCtrlPressed = keySet.any(ctrlKeys.contains);
+      bool isShiftPressed = keySet.any(shiftKeys.contains);
+
+      _mode = getMode(isCtrlPressed, isShiftPressed);
     }
-    _changeMode(PencilMark.values.indexOf(_mode));
+
+    _changePencilMark(PencilMark.values.indexOf(_mode));
 
     return KeyEventResult.handled;
   }
 
-  PencilMark getMode(Set<LogicalKeyboardKey> keyset) {
-    bool isCtrlPressed = keyset.any({LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight}.contains);
-    bool isShiftPressed = keyset.any({LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight}.contains);
-
-    // print(keyset.map((e) => e.keyLabel));
-
-    return isCtrlPressed && isShiftPressed
-        ? PencilMark.Color
-        : isCtrlPressed
+  PencilMark getMode(bool ctrl, bool shift) {
+    return ctrl && shift
+        ? PencilMark.Corner
+        : ctrl
             ? PencilMark.Center
-            : isShiftPressed
+            : shift
                 ? PencilMark.Corner
                 : PencilMark.Normal;
   }

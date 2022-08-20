@@ -1,55 +1,38 @@
 import 'package:flutter/material.dart';
 
 import '../data/data.dart';
-import '../script/functions.dart';
 
 class NumberPad extends StatelessWidget {
-  double _width;
-  final PencilMark _mode;
-  NumberPad({Key? key, required double buttonWidth, required PencilMark mode})
+  final double _width;
+  final PencilMark _pencilMark;
+  final NumberMode _numberMode;
+  const NumberPad({Key? key, required double buttonWidth, required PencilMark pencilMark, required NumberMode numberMode})
       : _width = buttonWidth,
-        _mode = mode,
+        _pencilMark = pencilMark,
+        _numberMode = numberMode,
         super(key: key);
-  static const List<List<int?>> numberPattern = [
-    [7, 8, 9],
-    [4, 5, 6],
-    [1, 2, 3],
-    [0]
-  ];
-  List colourPattern = [
-    Colors.blue.shade800,
-    Colors.blue,
-    Colors.blue.shade200,
-    Colors.cyan.shade300,
-    Colors.green.shade700,
-    Colors.yellow,
-    Colors.orange,
-    Colors.brown,
-    Colors.red.shade700,
-    Colors.purple.shade700,
-    Colors.pink.shade300,
-    Colors.grey.shade300,
-    Colors.grey,
-    Colors.grey.shade700,
-    // Colors.grey.shade800,
-
-    // Colors.black,
-  ];
 
   @override
   Widget build(BuildContext context) {
-    int patternLength = (_mode == PencilMark.Color) ? colourPattern.length : 10;
-    int _axisCount = Sqrt(patternLength).round();
-    double _gap = _width / 3;
+    int patternLength = (_numberMode == NumberMode.Color)
+        ? colourPalette.length
+        : (_numberMode == NumberMode.Letter)
+            ? 26 // Letter
+            : 10; // Number
+    int axisCount = (patternLength / 4).round();
+    // int axisCount = Sqrt(patternLength).round();
+    double gap = _width / 3;
     return SizedBox(
-      width: _width * _axisCount + (_axisCount - 1) * _gap + _axisCount,
+      width: _width * axisCount + (axisCount - 1) * gap + axisCount,
       child: Wrap(
-        textDirection: TextDirection.rtl,
+        textDirection: (_numberMode == NumberMode.Letter) ? TextDirection.ltr : TextDirection.rtl,
         alignment: WrapAlignment.center,
-        runSpacing: _gap,
-        spacing: _gap,
+        runSpacing: gap,
+        spacing: gap,
         children: List.generate(patternLength, (index) {
-          dynamic value = (patternLength - 1) - index;
+          //List.generate(26, (index) => print(String.fromCharCode(index+65)));
+
+          dynamic value = (_numberMode == NumberMode.Letter) ? String.fromCharCode(index + 65) : (patternLength - 1) - index;
           return SizedBox(
             height: _width,
             width: _width,
@@ -59,11 +42,9 @@ class NumberPad extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border.all(width: 0.25),
-                  backgroundBlendMode: BlendMode.multiply,
                   borderRadius: BorderRadius.circular(4),
-                  color: (_mode == PencilMark.Color) ? colourPattern[value] : Colors.transparent,
                 ),
-                child: getChild(value),
+                child: getChildWithPencilMarkMode(value),
               ),
             ),
           );
@@ -72,22 +53,36 @@ class NumberPad extends StatelessWidget {
     );
   }
 
-  Widget getChild(value) {
-    switch (_mode) {
+  Widget getChildWithPencilMarkMode(value) {
+    switch (_pencilMark) {
       case PencilMark.Normal:
         return Center(
-          child: Text(
-            "$value",
-            style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 18),
-          ),
+          child: (_numberMode == NumberMode.Color)
+              ? SizedBox.expand(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      backgroundBlendMode: BlendMode.multiply,
+                      color: colourPalette[value],
+                    ),
+                  ),
+                )
+              : Text("$value", style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 18)),
         );
 
       case PencilMark.Center:
         return Center(
-          child: Text(
-            "$value",
-            style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
-          ),
+          child: (_numberMode == NumberMode.Color)
+              ? SizedBox.square(
+                  dimension: _width / 3,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2.5),
+                      color: colourPalette[value],
+                    ),
+                  ),
+                )
+              : Text("$value", style: const TextStyle(fontFamily: 'Consolas', fontSize: 12)),
         );
 
       case PencilMark.Corner:
@@ -95,20 +90,21 @@ class NumberPad extends StatelessWidget {
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(4),
-            child: Text(
-              "$value",
-              style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
-            ),
+            child: (_numberMode == NumberMode.Color)
+                ? SizedBox.square(
+                    dimension: _width / 3,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2.5),
+                        color: colourPalette[value],
+                      ),
+                    ),
+                  )
+                : Text("$value", style: const TextStyle(fontFamily: 'Consolas', fontSize: 12)),
           ),
         );
       default:
-        return SizedBox.expand();
-      // return Center(
-      //   child: Text(
-      //     "$value",
-      //     style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
-      //   ),
-      // );
+        return const SizedBox.expand();
     }
   }
 }
