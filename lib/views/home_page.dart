@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../clock_view.dart';
 import '../widgets/background.dart';
 import '../widgets/grid_outline.dart';
 import '../widgets/number_grid.dart';
@@ -15,14 +16,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool editMode = false;
+  bool _editMode = false;
   PencilMark _mode = PencilMark.Normal;
   NumberMode _numberMode = NumberMode.Number;
 
   final List<bool> _pencilMarkSelected = [true, false, false];
-  final List<bool> _NumberModeSelected = [true, false, false];
+  final List<bool> _numberModeSelected = [true, false, false];
 
   final FocusNode _node = FocusNode();
+
   Set<LogicalKeyboardKey> ctrlKeys = {LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight};
   Set<LogicalKeyboardKey> shiftKeys = {LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight};
 
@@ -66,11 +68,13 @@ class _HomePageState extends State<HomePage> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const DigitalClock(),
+                    // SizedBox.square(dimension: 200, child: const AnalogClock()),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text("Edit Mode"),
-                        Switch(value: editMode, onChanged: (bool state) => setState(() => editMode = !editMode)),
+                        Switch(value: _editMode, onChanged: (bool state) => setState(() => _editMode = !_editMode)),
                       ],
                     ),
                     const SizedBox(height: 40),
@@ -90,14 +94,14 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(5.0),
                       constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
                       onPressed: _changeNumberMode,
-                      isSelected: _NumberModeSelected,
+                      isSelected: _numberModeSelected,
                       children: ["Number", "Letter", "Color"].map((item) => Text(item)).toList(),
                     ),
                   ],
                 ),
 
                 // TODO :add lines and other drawings
-                editMode
+                _editMode
                     ? ColoredBox(
                         color: Colors.blue.shade100,
                         child: Column(
@@ -142,10 +146,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _changeNumberMode(int index) {
-    int oldIndex = _NumberModeSelected.indexOf(true);
+    int oldIndex = _numberModeSelected.indexOf(true);
     if (oldIndex != index) {
-      _NumberModeSelected[oldIndex] = false;
-      _NumberModeSelected[index] = true;
+      _numberModeSelected[oldIndex] = false;
+      _numberModeSelected[index] = true;
       _numberMode = NumberMode.values[index];
       setState(() {});
     }
@@ -154,19 +158,24 @@ class _HomePageState extends State<HomePage> {
   KeyEventResult _onKeyEvent(KeyEvent event) {
     LogicalKeyboardKey logicalKeyboardKey = event.logicalKey;
 
-    Set<LogicalKeyboardKey> ctrl_shift = ctrlKeys.union(shiftKeys);
-
-    bool contain = ctrl_shift.contains(logicalKeyboardKey); // pressed value is ctrl / shift
+    String? _char = event.character;
 
     if (event is KeyDownEvent) {
-      print(event.character);
+      if (_char != null) print(_char);
 
-      if (contain) {
+      if (ctrlKeys.union(shiftKeys).contains(logicalKeyboardKey)) {
         keySet.add(logicalKeyboardKey);
       }
+
       // print(keySet);
       bool isCtrlPressed = keySet.any(ctrlKeys.contains);
       bool isShiftPressed = keySet.any(shiftKeys.contains);
+      if (logicalKeyboardKey == LogicalKeyboardKey.tab) {
+        int index = isShiftPressed
+            ? (_numberModeSelected.indexOf(true) - 1) % _numberModeSelected.length
+            : (_numberModeSelected.indexOf(true) + 1) % _numberModeSelected.length;
+        _changeNumberMode(index);
+      }
 
       _mode = getMode(isCtrlPressed, isShiftPressed);
       // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
@@ -186,10 +195,10 @@ class _HomePageState extends State<HomePage> {
   PencilMark getMode(bool ctrl, bool shift) {
     return ctrl && shift
         ? PencilMark.Corner
-        : ctrl
-            ? PencilMark.Center
-            : shift
-                ? PencilMark.Corner
+        : shift
+            ? PencilMark.Corner
+            : ctrl
+                ? PencilMark.Center
                 : PencilMark.Normal;
   }
 }
