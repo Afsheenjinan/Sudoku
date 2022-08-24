@@ -1,11 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../include/classes.dart';
 
 class NumberGrid extends StatefulWidget {
-  List<List<int>> gridPattern;
+  final List<List<GridItems>> gridPattern;
 
-  double width;
+  final double width;
 
-  NumberGrid({Key? key, required this.gridPattern, required this.width}) : super(key: key);
+  final bool isCtrl;
+  final bool isShift;
+
+  const NumberGrid({Key? key, required this.gridPattern, required this.width, required this.isCtrl, required this.isShift}) : super(key: key);
 
   @override
   State<NumberGrid> createState() => _NumberGridState();
@@ -14,11 +19,18 @@ class NumberGrid extends StatefulWidget {
 class _NumberGridState extends State<NumberGrid> {
   Set selected = {};
 
-  int currentCell = 81;
+  List<Alignment> list = [
+    Alignment.topLeft,
+    Alignment.topRight,
+    Alignment.bottomLeft,
+    Alignment.bottomRight,
+    Alignment.topCenter,
+    Alignment.bottomCenter,
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final List<int> _flatten_grid = widget.gridPattern.expand((element) => element).toList();
+    final List<GridItems> flattenGrid = widget.gridPattern.expand((element) => element).toList();
     return SizedBox(
       height: widget.width,
       width: widget.width,
@@ -30,17 +42,55 @@ class _NumberGridState extends State<NumberGrid> {
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onPanStart: (details) => setState(() => selected.clear()),
+            onPanStart: (details) => setState(() {
+              if (!(widget.isCtrl || widget.isShift)) selected.clear();
+            }),
             onPanUpdate: (details) => onDrag(details, index),
             onTap: () => selectContainer(index),
             child: Container(
-              decoration: BoxDecoration(border: selected.contains(index) ? setBorder(index, Colors.green, 4) : null),
-              child: Center(
-                child: Text(
-                  _flatten_grid[index].toString(),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 18),
-                ),
-              ),
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                  color: selected.contains(index)
+                      ? Colors.green.withOpacity(0.25)
+                      : (flattenGrid[index].number?.color != null)
+                          ? flattenGrid[index].number?.color
+                          : Colors.transparent),
+              // decoration: BoxDecoration(border: selected.contains(index) ? setBorder(index, Colors.green, 4) : null),
+              child: (flattenGrid[index].number?.value != null)
+                  ? Align(
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        // fit: BoxFit.scaleDown,
+                        child: Text(
+                          flattenGrid[index].number!.value.toString(),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 24),
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              children: [
+                                flattenGrid[index].cornerPencilMarks.map((e) => e.value).where((element) => element != null).join().isEmpty
+                                    ? Text(" ")
+                                    : Text(
+                                        flattenGrid[index].centerPencilMarks.map((e) => e.value).where((element) => element != null).join(),
+                                        style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
+                                      ),
+                                for (var i in flattenGrid[index].centerPencilMarks.map((e) => e.color).where((element) => element != null))
+                                  Container(color: i, height: 6, width: 6)
+                              ],
+                            ),
+                          ),
+                        ),
+                        for (Number item in flattenGrid[index].cornerPencilMarks)
+                          CornerPencilMarksWidget(alignment: list[flattenGrid[index].cornerPencilMarks.indexOf(item)], number: item)
+                      ],
+                    ),
             ),
           );
         },
@@ -50,12 +100,16 @@ class _NumberGridState extends State<NumberGrid> {
 
   void selectContainer(int index) {
     print("Container was tapped $index");
-    // print(index ~/ 9);
-    // print(index % 9);
-    selected.clear();
-    setState(() {
+
+    if (!(widget.isCtrl || widget.isShift)) selected.clear();
+
+    if (selected.contains(index)) {
+      selected.remove(index);
+    } else {
       selected.add(index);
-    });
+    }
+
+    setState(() {});
   }
 
   void onDrag(DragUpdateDetails details, int index) {
@@ -70,36 +124,32 @@ class _NumberGridState extends State<NumberGrid> {
 
     int value = x + y * 9;
     // print(value);
-    if (currentCell == value) return;
 
-    if (selected.contains(value)) {
-      selected.remove(value);
+    if (widget.isCtrl) {
+      if (selected.contains(value)) selected.remove(value);
     } else {
-      selected.add(value);
+      if (!selected.contains(value)) selected.add(value);
     }
-    currentCell = value;
 
     setState(() {});
-
-    // selected
   }
 
   Border? setBorder(int index, Color color, double width) {
     int x = (index % 9);
     int y = (index ~/ 9);
-    print(index);
-    print("x: $x, y: $y");
 
     int up = x + (y - 1) * 9;
     int down = x + (y + 1) * 9;
     int left = (x > 0) ? (x - 1) + y * 9 : -1;
     int right = (x < 8) ? (x + 1) + y * 9 : -1;
-    print("x : $x");
-    print("up : $up, down : $down");
-    print("left : $left, right : $right");
+    if (kDebugMode) {
+      print("--------------------($x,$y)-----------------");
+      print("     $up");
+      print("$left | $index | $right");
+      print("     $down");
+    }
 
     BorderSide borderSide = BorderSide(color: color, width: width);
-    // BorderSide noBorder = BorderSide(color: Colors.transparent, width: 3);
     BorderSide noBorder = BorderSide(color: Colors.transparent, width: width);
     // BorderSide noBorder = BorderSide.none;
 
@@ -119,5 +169,31 @@ class _NumberGridState extends State<NumberGrid> {
     //     ),
     //     Border.all(color: Colors.transparent, width: width, style: BorderStyle.solid),
     //     1 / 2);
+  }
+}
+
+class CornerPencilMarksWidget extends StatelessWidget {
+  const CornerPencilMarksWidget({Key? key, required this.alignment, required this.number}) : super(key: key);
+
+  final Alignment alignment;
+  final Number number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment,
+      child: ColoredBox(
+        color: number.color ?? Colors.transparent,
+        child: (number.value != null)
+            ? Text(
+                "${number.value}",
+                style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
+              )
+            : const SizedBox(
+                height: 6,
+                width: 6,
+              ),
+      ),
+    );
   }
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../clock_view.dart';
+import '../include/classes.dart';
+import '../widgets/clock.dart';
 import '../widgets/background.dart';
 import '../widgets/grid_outline.dart';
 import '../widgets/number_grid.dart';
 import '../widgets/num_pad.dart';
 import '../data/data.dart';
+import '../widgets/selector_buttons.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
@@ -20,19 +22,67 @@ class _HomePageState extends State<HomePage> {
   PencilMark _mode = PencilMark.Normal;
   NumberMode _numberMode = NumberMode.Number;
 
-  final List<bool> _pencilMarkSelected = [true, false, false];
-  final List<bool> _numberModeSelected = [true, false, false];
+  final List<bool> _pencilMarkButtonsSelected = [true, false, false];
+  final List<bool> _numberModeButtonsSelected = [true, false, false];
 
-  final FocusNode _node = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   Set<LogicalKeyboardKey> ctrlKeys = {LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight};
   Set<LogicalKeyboardKey> shiftKeys = {LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight};
 
   Set<LogicalKeyboardKey> keySet = {};
 
+  bool isCtrlPressed = false;
+  bool isShiftPressed = false;
+
+  SudokuPattern sudokuPattern = SudokuPattern()
+    ..grid = List.generate(9, (index) => List.generate(9, (index) => GridItems()..number = Number(value: index + 1))..shuffle());
+
+  @override
+  void initState() {
+    sudokuPattern.grid[0][6].number = null;
+    sudokuPattern.grid[0][8].number = null;
+    sudokuPattern.grid[0][8].number = Number(color: Colors.amberAccent);
+    // sudokuPattern.grid[0][8].backgroundColors.add(Colors.amber);
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Number(value: 5));
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Number(value: 6));
+    sudokuPattern.grid[0][6].centerPencilMarks.addAll({const Number(color: Colors.brown)});
+
+    sudokuPattern.grid[5][3].number = Number(value: "D", color: Colors.yellow.shade300);
+
+    sudokuPattern.grid[0][6].cornerPencilMarks.addAll({const Number(value: 7), const Number(value: 4), const Number(value: 3)});
+    sudokuPattern.grid[6][5].number = null;
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Number(value: 7));
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Number(value: 5));
+    sudokuPattern.grid[6][5].cornerPencilMarks.addAll({const Number(value: 8), const Number(value: 5)});
+    sudokuPattern.grid[3][1].number = null;
+    sudokuPattern.grid[3][1].centerPencilMarks.addAll({
+      const Number(value: 9),
+      const Number(value: 7),
+      const Number(value: 8),
+      const Number(value: 1),
+      const Number(value: 2),
+      const Number(value: 3)
+    });
+    sudokuPattern.grid[3][1].cornerPencilMarks.add(const Number(value: 0));
+    sudokuPattern.grid[7][2].number = null;
+    sudokuPattern.grid[7][2].centerPencilMarks.addAll({
+      const Number(value: 9),
+      const Number(value: 7),
+      const Number(value: 8),
+      const Number(value: 1),
+      const Number(value: 2),
+    });
+    sudokuPattern.grid[7][2].centerPencilMarks.addAll({const Number(color: Colors.brown), const Number(color: Colors.green)});
+    sudokuPattern.grid[7][2].cornerPencilMarks.addAll({const Number(color: Colors.blue), const Number(color: Colors.orange)});
+    sudokuPattern.grid[7][2].cornerPencilMarks.add(const Number(value: 0));
+
+    super.initState();
+  }
+
   @override
   void dispose() {
-    _node
+    _focusNode
       ..removeListener(() {})
       ..dispose();
     super.dispose();
@@ -40,10 +90,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // print(sudokuPattern.grid.);
     print("build");
-    if (_node.hasFocus == false) _node.requestFocus();
+    print(isCtrlPressed || isShiftPressed);
+    if (_focusNode.hasFocus == false) _focusNode.requestFocus();
     return KeyboardListener(
-      focusNode: _node,
+      focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: _onKeyEvent,
       child: SafeArea(
@@ -61,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                   child: Stack(
                     children: <Widget>[
                       SudokuGrid(width: 300),
-                      NumberGrid(gridPattern: grid, width: 300),
+                      NumberGrid(gridPattern: sudokuPattern.grid, width: 300, isCtrl: isCtrlPressed, isShift: isShiftPressed),
                     ],
                   ),
                 ),
@@ -69,7 +121,6 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const DigitalClock(),
-                    // SizedBox.square(dimension: 200, child: const AnalogClock()),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -80,22 +131,16 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 40),
                     NumberPad(buttonWidth: 36, pencilMark: _mode, numberMode: _numberMode),
                     const SizedBox(height: 40),
-                    ToggleButtons(
-                      fillColor: Colors.transparent,
-                      borderRadius: BorderRadius.circular(5.0),
-                      constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
+                    ModeSelectorButtons(
+                      items: ["Normal", "Center", "Corner"],
+                      selectedItems: _pencilMarkButtonsSelected,
                       onPressed: _changePencilMark,
-                      isSelected: _pencilMarkSelected,
-                      children: ["Normal", "Center", "Corner"].map((item) => Text(item)).toList(),
                     ),
                     const SizedBox(height: 40),
-                    ToggleButtons(
-                      fillColor: Colors.transparent,
-                      borderRadius: BorderRadius.circular(5.0),
-                      constraints: const BoxConstraints(minHeight: 24.0, minWidth: 72, maxWidth: 120),
+                    ModeSelectorButtons(
+                      items: ["Number", "Letter", "Color"],
+                      selectedItems: _numberModeButtonsSelected,
                       onPressed: _changeNumberMode,
-                      isSelected: _numberModeSelected,
-                      children: ["Number", "Letter", "Color"].map((item) => Text(item)).toList(),
                     ),
                   ],
                 ),
@@ -136,20 +181,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _changePencilMark(int index) {
-    int oldIndex = _pencilMarkSelected.indexOf(true);
+    int oldIndex = _pencilMarkButtonsSelected.indexOf(true);
     if (oldIndex != index) {
-      _pencilMarkSelected[oldIndex] = false;
-      _pencilMarkSelected[index] = true;
+      _pencilMarkButtonsSelected[oldIndex] = false;
+      _pencilMarkButtonsSelected[index] = true;
       _mode = PencilMark.values[index];
       setState(() {});
     }
   }
 
   void _changeNumberMode(int index) {
-    int oldIndex = _numberModeSelected.indexOf(true);
+    int oldIndex = _numberModeButtonsSelected.indexOf(true);
     if (oldIndex != index) {
-      _numberModeSelected[oldIndex] = false;
-      _numberModeSelected[index] = true;
+      _numberModeButtonsSelected[oldIndex] = false;
+      _numberModeButtonsSelected[index] = true;
       _numberMode = NumberMode.values[index];
       setState(() {});
     }
@@ -158,22 +203,22 @@ class _HomePageState extends State<HomePage> {
   KeyEventResult _onKeyEvent(KeyEvent event) {
     LogicalKeyboardKey logicalKeyboardKey = event.logicalKey;
 
-    String? _char = event.character;
+    String? char = event.character;
 
     if (event is KeyDownEvent) {
-      if (_char != null) print(_char);
+      if (char != null) print(char);
 
       if (ctrlKeys.union(shiftKeys).contains(logicalKeyboardKey)) {
         keySet.add(logicalKeyboardKey);
       }
 
       // print(keySet);
-      bool isCtrlPressed = keySet.any(ctrlKeys.contains);
-      bool isShiftPressed = keySet.any(shiftKeys.contains);
-      if (logicalKeyboardKey == LogicalKeyboardKey.tab) {
+      isCtrlPressed = keySet.any(ctrlKeys.contains);
+      isShiftPressed = keySet.any(shiftKeys.contains);
+      if (logicalKeyboardKey == LogicalKeyboardKey.tab || logicalKeyboardKey == LogicalKeyboardKey.space) {
         int index = isShiftPressed
-            ? (_numberModeSelected.indexOf(true) - 1) % _numberModeSelected.length
-            : (_numberModeSelected.indexOf(true) + 1) % _numberModeSelected.length;
+            ? (_numberModeButtonsSelected.indexOf(true) - 1) % _numberModeButtonsSelected.length
+            : (_numberModeButtonsSelected.indexOf(true) + 1) % _numberModeButtonsSelected.length;
         _changeNumberMode(index);
       }
 
@@ -181,9 +226,8 @@ class _HomePageState extends State<HomePage> {
       // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
     } else {
       keySet.remove(logicalKeyboardKey);
-      bool isCtrlPressed = keySet.any(ctrlKeys.contains);
-      bool isShiftPressed = keySet.any(shiftKeys.contains);
-
+      isCtrlPressed = keySet.any(ctrlKeys.contains);
+      isShiftPressed = keySet.any(shiftKeys.contains);
       _mode = getMode(isCtrlPressed, isShiftPressed);
     }
 

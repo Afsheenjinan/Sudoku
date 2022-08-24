@@ -1,0 +1,19 @@
+
+void _onBackspace() {
+    if (_columnIndex <= 0) return;
+    _columnIndex--;
+    _currentword = _currentword.replacewith(_columnIndex, ' ');
+    _list[_rowIndex] = _currentword.toAlphabetList();
+    setState(() {});
+  }
+
+  void _onAtoZ(String val) {
+    if (_columnIndex >= _letterCount) return;
+    if (_rowIndex >= _rowLength) return;
+
+    _currentword = _currentword.replacewith(_columnIndex, val);
+    _list[_rowIndex] = _currentword.toAlphabetList();
+    _columnIndex += 1;
+    setState(() {});
+  }
+

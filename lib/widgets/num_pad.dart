@@ -20,7 +20,6 @@ class NumberPad extends StatelessWidget {
             ? 26 // Letter
             : 10; // Number
     int axisCount = (patternLength / 4).round();
-    // int axisCount = Sqrt(patternLength).round();
     double gap = _width / 3;
     return SizedBox(
       width: _width * axisCount + (axisCount - 1) * gap + axisCount,
@@ -30,15 +29,13 @@ class NumberPad extends StatelessWidget {
         runSpacing: gap,
         spacing: gap,
         children: List.generate(patternLength, (index) {
-          //List.generate(26, (index) => print(String.fromCharCode(index+65)));
-
           dynamic value = (_numberMode == NumberMode.Letter) ? String.fromCharCode(index + 65) : (patternLength - 1) - index;
           return SizedBox(
             height: _width,
             width: _width,
             child: InkWell(
               borderRadius: BorderRadius.circular(4),
-              onTap: () => print(value),
+              onTap: () => _onButtonTap(value),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border.all(width: 0.25),
@@ -52,6 +49,8 @@ class NumberPad extends StatelessWidget {
       ),
     );
   }
+
+  void _onButtonTap(value) => print(value);
 
   Widget getChildWithPencilMarkMode(value) {
     switch (_pencilMark) {
