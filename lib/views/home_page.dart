@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../include/classes.dart';
-import '../widgets/clock.dart';
+import '../widgets/clock_widget.dart';
 import '../widgets/background.dart';
 import '../widgets/grid_outline.dart';
 import '../widgets/number_grid.dart';
@@ -25,10 +25,10 @@ class _HomePageState extends State<HomePage> {
   final List<bool> _pencilMarkButtonsSelected = [true, false, false];
   final List<bool> _numberModeButtonsSelected = [true, false, false];
 
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode(skipTraversal: true);
 
-  Set<LogicalKeyboardKey> ctrlKeys = {LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight};
-  Set<LogicalKeyboardKey> shiftKeys = {LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight};
+  final Set<LogicalKeyboardKey> ctrlKeys = {LogicalKeyboardKey.control, LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.controlRight};
+  final Set<LogicalKeyboardKey> shiftKeys = {LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight};
 
   Set<LogicalKeyboardKey> keySet = {};
 
@@ -180,6 +180,49 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  KeyEventResult _onKeyEvent(KeyEvent event) {
+    LogicalKeyboardKey logicalKeyboardKey = event.logicalKey;
+
+    String? char = event.character;
+
+    if (event is KeyDownEvent) {
+      if (char != null) print(char);
+      if (ctrlKeys.union(shiftKeys).contains(logicalKeyboardKey)) keySet.add(logicalKeyboardKey);
+
+      isCtrlPressed = keySet.any(ctrlKeys.contains);
+      isShiftPressed = keySet.any(shiftKeys.contains);
+
+      // if TAB pressed shift along
+      if (logicalKeyboardKey == LogicalKeyboardKey.tab || logicalKeyboardKey == LogicalKeyboardKey.space) {
+        int index = isShiftPressed
+            ? (_numberModeButtonsSelected.indexOf(true) - 1) % _numberModeButtonsSelected.length
+            : (_numberModeButtonsSelected.indexOf(true) + 1) % _numberModeButtonsSelected.length;
+        _changeNumberMode(index);
+      }
+
+      // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
+    } else {
+      keySet.remove(logicalKeyboardKey);
+      isCtrlPressed = keySet.any(ctrlKeys.contains);
+      isShiftPressed = keySet.any(shiftKeys.contains);
+    }
+    _mode = getMode(isCtrlPressed, isShiftPressed);
+
+    _changePencilMark(PencilMark.values.indexOf(_mode));
+
+    return KeyEventResult.handled;
+  }
+
+  PencilMark getMode(bool ctrl, bool shift) {
+    return ctrl && shift
+        ? PencilMark.Corner
+        : shift
+            ? PencilMark.Corner
+            : ctrl
+                ? PencilMark.Center
+                : PencilMark.Normal;
+  }
+
   void _changePencilMark(int index) {
     int oldIndex = _pencilMarkButtonsSelected.indexOf(true);
     if (oldIndex != index) {
@@ -198,51 +241,5 @@ class _HomePageState extends State<HomePage> {
       _numberMode = NumberMode.values[index];
       setState(() {});
     }
-  }
-
-  KeyEventResult _onKeyEvent(KeyEvent event) {
-    LogicalKeyboardKey logicalKeyboardKey = event.logicalKey;
-
-    String? char = event.character;
-
-    if (event is KeyDownEvent) {
-      if (char != null) print(char);
-
-      if (ctrlKeys.union(shiftKeys).contains(logicalKeyboardKey)) {
-        keySet.add(logicalKeyboardKey);
-      }
-
-      // print(keySet);
-      isCtrlPressed = keySet.any(ctrlKeys.contains);
-      isShiftPressed = keySet.any(shiftKeys.contains);
-      if (logicalKeyboardKey == LogicalKeyboardKey.tab || logicalKeyboardKey == LogicalKeyboardKey.space) {
-        int index = isShiftPressed
-            ? (_numberModeButtonsSelected.indexOf(true) - 1) % _numberModeButtonsSelected.length
-            : (_numberModeButtonsSelected.indexOf(true) + 1) % _numberModeButtonsSelected.length;
-        _changeNumberMode(index);
-      }
-
-      _mode = getMode(isCtrlPressed, isShiftPressed);
-      // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
-    } else {
-      keySet.remove(logicalKeyboardKey);
-      isCtrlPressed = keySet.any(ctrlKeys.contains);
-      isShiftPressed = keySet.any(shiftKeys.contains);
-      _mode = getMode(isCtrlPressed, isShiftPressed);
-    }
-
-    _changePencilMark(PencilMark.values.indexOf(_mode));
-
-    return KeyEventResult.handled;
-  }
-
-  PencilMark getMode(bool ctrl, bool shift) {
-    return ctrl && shift
-        ? PencilMark.Corner
-        : shift
-            ? PencilMark.Corner
-            : ctrl
-                ? PencilMark.Center
-                : PencilMark.Normal;
   }
 }

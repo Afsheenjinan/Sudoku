@@ -1,13 +1,15 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:flutter/material.dart';
 
 enum PencilMark { Normal, Center, Corner }
 
-enum NumberMode { Number, Letter, Color }
+enum NumberMode { Number, Letter, Colour }
 
-enum GameStatus { Playing, Paused, Completed }
+enum GameStatus { Playing, Paused, Won, Lost }
 
 // List<List<int>> grid = List.generate(9, (index) => [1, 2, 9, 7, 5, 6, 3, 8, 4]..shuffle());
-List colourPalette = [
+List lightThemeColourPalette = [
   Colors.blue.shade800,
   Colors.blue,
   Colors.blue.shade200,

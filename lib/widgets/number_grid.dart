@@ -19,7 +19,7 @@ class NumberGrid extends StatefulWidget {
 class _NumberGridState extends State<NumberGrid> {
   Set selected = {};
 
-  List<Alignment> list = [
+  List<Alignment> cornerAlignmentList = [
     Alignment.topLeft,
     Alignment.topRight,
     Alignment.bottomLeft,
@@ -88,7 +88,7 @@ class _NumberGridState extends State<NumberGrid> {
                           ),
                         ),
                         for (Number item in flattenGrid[index].cornerPencilMarks)
-                          CornerPencilMarksWidget(alignment: list[flattenGrid[index].cornerPencilMarks.indexOf(item)], number: item)
+                          CornerPencilMarksWidget(alignment: cornerAlignmentList[flattenGrid[index].cornerPencilMarks.indexOf(item)], number: item)
                       ],
                     ),
             ),

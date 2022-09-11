@@ -14,8 +14,8 @@ class NumberPad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int patternLength = (_numberMode == NumberMode.Color)
-        ? colourPalette.length
+    int patternLength = (_numberMode == NumberMode.Colour)
+        ? lightThemeColourPalette.length
         : (_numberMode == NumberMode.Letter)
             ? 26 // Letter
             : 10; // Number
@@ -56,13 +56,13 @@ class NumberPad extends StatelessWidget {
     switch (_pencilMark) {
       case PencilMark.Normal:
         return Center(
-          child: (_numberMode == NumberMode.Color)
+          child: (_numberMode == NumberMode.Colour)
               ? SizedBox.expand(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
                       backgroundBlendMode: BlendMode.multiply,
-                      color: colourPalette[value],
+                      color: lightThemeColourPalette[value],
                     ),
                   ),
                 )
@@ -71,13 +71,13 @@ class NumberPad extends StatelessWidget {
 
       case PencilMark.Center:
         return Center(
-          child: (_numberMode == NumberMode.Color)
+          child: (_numberMode == NumberMode.Colour)
               ? SizedBox.square(
                   dimension: _width / 3,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2.5),
-                      color: colourPalette[value],
+                      color: lightThemeColourPalette[value],
                     ),
                   ),
                 )
@@ -89,13 +89,13 @@ class NumberPad extends StatelessWidget {
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(4),
-            child: (_numberMode == NumberMode.Color)
+            child: (_numberMode == NumberMode.Colour)
                 ? SizedBox.square(
                     dimension: _width / 3,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(2.5),
-                        color: colourPalette[value],
+                        color: lightThemeColourPalette[value],
                       ),
                     ),
                   )

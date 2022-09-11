@@ -15,12 +15,6 @@ class _DigitalClockState extends State<DigitalClock> {
   Duration _elapsedDuration = const Duration(seconds: 0);
   final DateTime _dateTime = DateTime.now();
 
-  @override
-  void initState() {
-    _clockTimer = createTimer();
-    super.initState();
-  }
-
   Timer createTimer() {
     return Timer.periodic(
       const Duration(seconds: 1),
@@ -35,6 +29,12 @@ class _DigitalClockState extends State<DigitalClock> {
   }
 
   @override
+  void initState() {
+    _clockTimer = createTimer();
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _clockTimer.cancel();
     super.dispose();
@@ -44,7 +44,7 @@ class _DigitalClockState extends State<DigitalClock> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text("${_elapsedDuration.inHours}:${pad(_elapsedDuration.inMinutes.remainder(60))}:${pad(_elapsedDuration.inSeconds.remainder(60))}"),
+        Text(durationInText(_elapsedDuration)),
         const SizedBox(width: 32),
         IconButton(
           iconSize: 32,
@@ -58,4 +58,8 @@ class _DigitalClockState extends State<DigitalClock> {
   }
 
   String pad(int n) => n.toString().padLeft(2, "0");
+
+  String durationInText(Duration time) {
+    return "${time.inHours}:${pad(time.inMinutes.remainder(60))}:${pad(time.inSeconds.remainder(60))}";
+  }
 }
