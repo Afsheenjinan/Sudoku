@@ -2,31 +2,31 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 class GridItems {
-  Number? number;
-  final List<Number> centerPencilMarks = [];
-  final List<Number> cornerPencilMarks = [];
+  Character? character;
+  final List<Character> centerPencilMarks = [];
+  final List<Character> cornerPencilMarks = [];
 
-  void addNumber(Number other) {
-    number = (number == other) ? null : other;
+  void addCharacter(Character other) {
+    character = (character == other) ? null : other;
   }
 
-  void addCenterPencilMark(Number other) {
+  void addCenterPencilMark(Character other) {
     centerPencilMarks.contains(other) ? centerPencilMarks.remove(other) : centerPencilMarks.add(other);
   }
 
-  void addCornerPencilMark(Number other) {
+  void addCornerPencilMark(Character other) {
     cornerPencilMarks.contains(other) ? cornerPencilMarks.remove(other) : cornerPencilMarks.add(other);
   }
 }
 
-class Number extends Equatable {
+class Character extends Equatable {
   final dynamic value;
   final Color? color;
 
-  const Number({this.value, this.color});
+  const Character({this.value, this.color});
 
-  factory Number.fromValue(int val) => Number(value: val);
-  factory Number.fromColor(Color col) => Number(color: col);
+  factory Character.fromValue(int val) => Character(value: val);
+  factory Character.fromColor(Color col) => Character(color: col);
 
   @override
   List get props => [value, color];
@@ -35,3 +35,6 @@ class Number extends Equatable {
 class SudokuPattern {
   List<List<GridItems>> grid = [];
 }
+
+SudokuPattern sudokuPattern = SudokuPattern()
+  ..grid = List.generate(9, (index) => List.generate(9, (index) => GridItems()..character = Character(value: index + 1))..shuffle());

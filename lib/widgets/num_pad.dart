@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sudoku/include/classes.dart';
 
 import '../data/data.dart';
 
@@ -6,6 +7,7 @@ class NumberPad extends StatelessWidget {
   final double _width;
   final PencilMark _pencilMark;
   final NumberMode _numberMode;
+
   const NumberPad({Key? key, required double buttonWidth, required PencilMark pencilMark, required NumberMode numberMode})
       : _width = buttonWidth,
         _pencilMark = pencilMark,
@@ -50,7 +52,12 @@ class NumberPad extends StatelessWidget {
     );
   }
 
-  void _onButtonTap(value) => print(value);
+  void _onButtonTap(value) {
+    for (int index in selected) {
+      // sudokuPattern[index] = value;
+      print("$index = $value");
+    }
+  }
 
   Widget getChildWithPencilMarkMode(value) {
     switch (_pencilMark) {

@@ -19,11 +19,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _editMode = false;
-  PencilMark _mode = PencilMark.Normal;
+  PencilMark _pencilMarkMode = PencilMark.Normal;
   NumberMode _numberMode = NumberMode.Number;
 
   final List<bool> _pencilMarkButtonsSelected = [true, false, false];
-  final List<bool> _numberModeButtonsSelected = [true, false, false];
+  final List<bool> _numberModeButtons = [true, false, false];
 
   final FocusNode _focusNode = FocusNode(skipTraversal: true);
 
@@ -35,47 +35,44 @@ class _HomePageState extends State<HomePage> {
   bool isCtrlPressed = false;
   bool isShiftPressed = false;
 
-  SudokuPattern sudokuPattern = SudokuPattern()
-    ..grid = List.generate(9, (index) => List.generate(9, (index) => GridItems()..number = Number(value: index + 1))..shuffle());
-
   @override
   void initState() {
-    sudokuPattern.grid[0][6].number = null;
-    sudokuPattern.grid[0][8].number = null;
-    sudokuPattern.grid[0][8].number = Number(color: Colors.amberAccent);
+    sudokuPattern.grid[0][6].character = null;
+    sudokuPattern.grid[0][8].character = null;
+    sudokuPattern.grid[0][8].character = Character(color: Colors.amberAccent);
     // sudokuPattern.grid[0][8].backgroundColors.add(Colors.amber);
-    sudokuPattern.grid[0][6].centerPencilMarks.add(const Number(value: 5));
-    sudokuPattern.grid[0][6].centerPencilMarks.add(const Number(value: 6));
-    sudokuPattern.grid[0][6].centerPencilMarks.addAll({const Number(color: Colors.brown)});
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(value: 5));
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(value: 6));
+    sudokuPattern.grid[0][6].centerPencilMarks.addAll({const Character(color: Colors.brown)});
 
-    sudokuPattern.grid[5][3].number = Number(value: "D", color: Colors.yellow.shade300);
+    sudokuPattern.grid[5][3].character = Character(value: "D", color: Colors.yellow.shade300);
 
-    sudokuPattern.grid[0][6].cornerPencilMarks.addAll({const Number(value: 7), const Number(value: 4), const Number(value: 3)});
-    sudokuPattern.grid[6][5].number = null;
-    sudokuPattern.grid[6][5].centerPencilMarks.add(const Number(value: 7));
-    sudokuPattern.grid[6][5].centerPencilMarks.add(const Number(value: 5));
-    sudokuPattern.grid[6][5].cornerPencilMarks.addAll({const Number(value: 8), const Number(value: 5)});
-    sudokuPattern.grid[3][1].number = null;
+    sudokuPattern.grid[0][6].cornerPencilMarks.addAll({const Character(value: 7), const Character(value: 4), const Character(value: 3)});
+    sudokuPattern.grid[6][5].character = null;
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(value: 7));
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(value: 5));
+    sudokuPattern.grid[6][5].cornerPencilMarks.addAll({const Character(value: 8), const Character(value: 5)});
+    sudokuPattern.grid[3][1].character = null;
     sudokuPattern.grid[3][1].centerPencilMarks.addAll({
-      const Number(value: 9),
-      const Number(value: 7),
-      const Number(value: 8),
-      const Number(value: 1),
-      const Number(value: 2),
-      const Number(value: 3)
+      const Character(value: 9),
+      const Character(value: 7),
+      const Character(value: 8),
+      const Character(value: 1),
+      const Character(value: 2),
+      const Character(value: 3)
     });
-    sudokuPattern.grid[3][1].cornerPencilMarks.add(const Number(value: 0));
-    sudokuPattern.grid[7][2].number = null;
+    sudokuPattern.grid[3][1].cornerPencilMarks.add(const Character(value: 0));
+    sudokuPattern.grid[7][2].character = null;
     sudokuPattern.grid[7][2].centerPencilMarks.addAll({
-      const Number(value: 9),
-      const Number(value: 7),
-      const Number(value: 8),
-      const Number(value: 1),
-      const Number(value: 2),
+      const Character(value: 9),
+      const Character(value: 7),
+      const Character(value: 8),
+      const Character(value: 1),
+      const Character(value: 2),
     });
-    sudokuPattern.grid[7][2].centerPencilMarks.addAll({const Number(color: Colors.brown), const Number(color: Colors.green)});
-    sudokuPattern.grid[7][2].cornerPencilMarks.addAll({const Number(color: Colors.blue), const Number(color: Colors.orange)});
-    sudokuPattern.grid[7][2].cornerPencilMarks.add(const Number(value: 0));
+    sudokuPattern.grid[7][2].centerPencilMarks.addAll({const Character(color: Colors.brown), const Character(color: Colors.green)});
+    sudokuPattern.grid[7][2].cornerPencilMarks.addAll({const Character(color: Colors.blue), const Character(color: Colors.orange)});
+    sudokuPattern.grid[7][2].cornerPencilMarks.add(const Character(value: 0));
 
     super.initState();
   }
@@ -129,17 +126,17 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 40),
-                    NumberPad(buttonWidth: 36, pencilMark: _mode, numberMode: _numberMode),
+                    NumberPad(buttonWidth: 36, pencilMark: _pencilMarkMode, numberMode: _numberMode),
                     const SizedBox(height: 40),
                     ModeSelectorButtons(
                       items: ["Normal", "Center", "Corner"],
                       selectedItems: _pencilMarkButtonsSelected,
-                      onPressed: _changePencilMark,
+                      onPressed: _changePencilMarkMode,
                     ),
                     const SizedBox(height: 40),
                     ModeSelectorButtons(
                       items: ["Number", "Letter", "Color"],
-                      selectedItems: _numberModeButtonsSelected,
+                      selectedItems: _numberModeButtons,
                       onPressed: _changeNumberMode,
                     ),
                   ],
@@ -192,52 +189,42 @@ class _HomePageState extends State<HomePage> {
       isCtrlPressed = keySet.any(ctrlKeys.contains);
       isShiftPressed = keySet.any(shiftKeys.contains);
 
-      // if TAB pressed shift along
+      // if TAB pressed with shift
       if (logicalKeyboardKey == LogicalKeyboardKey.tab || logicalKeyboardKey == LogicalKeyboardKey.space) {
         int index = isShiftPressed
-            ? (_numberModeButtonsSelected.indexOf(true) - 1) % _numberModeButtonsSelected.length
-            : (_numberModeButtonsSelected.indexOf(true) + 1) % _numberModeButtonsSelected.length;
+            ? (_numberModeButtons.indexOf(true) - 1) % _numberModeButtons.length
+            : (_numberModeButtons.indexOf(true) + 1) % _numberModeButtons.length;
         _changeNumberMode(index);
       }
-
       // if (_regAtoZ.hasMatch(logicalKeyboardKey.keyLabel)) _onAtoZ(logicalKeyboardKey.keyLabel);
     } else {
+      //Key up Event
       keySet.remove(logicalKeyboardKey);
       isCtrlPressed = keySet.any(ctrlKeys.contains);
       isShiftPressed = keySet.any(shiftKeys.contains);
     }
-    _mode = getMode(isCtrlPressed, isShiftPressed);
+    _pencilMarkMode = getPencilMarkMode(ctrl: isCtrlPressed, shift: isShiftPressed);
 
-    _changePencilMark(PencilMark.values.indexOf(_mode));
+    _changePencilMarkMode(PencilMark.values.indexOf(_pencilMarkMode));
 
     return KeyEventResult.handled;
   }
 
-  PencilMark getMode(bool ctrl, bool shift) {
-    return ctrl && shift
-        ? PencilMark.Corner
-        : shift
-            ? PencilMark.Corner
-            : ctrl
-                ? PencilMark.Center
-                : PencilMark.Normal;
-  }
-
-  void _changePencilMark(int index) {
+  void _changePencilMarkMode(int index) {
     int oldIndex = _pencilMarkButtonsSelected.indexOf(true);
     if (oldIndex != index) {
       _pencilMarkButtonsSelected[oldIndex] = false;
       _pencilMarkButtonsSelected[index] = true;
-      _mode = PencilMark.values[index];
+      _pencilMarkMode = PencilMark.values[index];
       setState(() {});
     }
   }
 
   void _changeNumberMode(int index) {
-    int oldIndex = _numberModeButtonsSelected.indexOf(true);
+    int oldIndex = _numberModeButtons.indexOf(true);
     if (oldIndex != index) {
-      _numberModeButtonsSelected[oldIndex] = false;
-      _numberModeButtonsSelected[index] = true;
+      _numberModeButtons[oldIndex] = false;
+      _numberModeButtons[index] = true;
       _numberMode = NumberMode.values[index];
       setState(() {});
     }

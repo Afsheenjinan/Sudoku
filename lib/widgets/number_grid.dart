@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../data/data.dart';
 import '../include/classes.dart';
 
 class NumberGrid extends StatefulWidget {
@@ -17,8 +18,6 @@ class NumberGrid extends StatefulWidget {
 }
 
 class _NumberGridState extends State<NumberGrid> {
-  Set selected = {};
-
   List<Alignment> cornerAlignmentList = [
     Alignment.topLeft,
     Alignment.topRight,
@@ -52,17 +51,17 @@ class _NumberGridState extends State<NumberGrid> {
               decoration: BoxDecoration(
                   color: selected.contains(index)
                       ? Colors.green.withOpacity(0.25)
-                      : (flattenGrid[index].number?.color != null)
-                          ? flattenGrid[index].number?.color
+                      : (flattenGrid[index].character?.color != null)
+                          ? flattenGrid[index].character?.color
                           : Colors.transparent),
               // decoration: BoxDecoration(border: selected.contains(index) ? setBorder(index, Colors.green, 4) : null),
-              child: (flattenGrid[index].number?.value != null)
+              child: (flattenGrid[index].character?.value != null)
                   ? Align(
                       alignment: Alignment.center,
                       child: FittedBox(
                         // fit: BoxFit.scaleDown,
                         child: Text(
-                          flattenGrid[index].number!.value.toString(),
+                          flattenGrid[index].character!.value.toString(),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 24),
                         ),
                       ),
@@ -87,7 +86,7 @@ class _NumberGridState extends State<NumberGrid> {
                             ),
                           ),
                         ),
-                        for (Number item in flattenGrid[index].cornerPencilMarks)
+                        for (Character item in flattenGrid[index].cornerPencilMarks)
                           CornerPencilMarksWidget(alignment: cornerAlignmentList[flattenGrid[index].cornerPencilMarks.indexOf(item)], number: item)
                       ],
                     ),
@@ -176,7 +175,7 @@ class CornerPencilMarksWidget extends StatelessWidget {
   const CornerPencilMarksWidget({Key? key, required this.alignment, required this.number}) : super(key: key);
 
   final Alignment alignment;
-  final Number number;
+  final Character number;
 
   @override
   Widget build(BuildContext context) {
