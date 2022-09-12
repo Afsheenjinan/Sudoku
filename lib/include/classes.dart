@@ -32,8 +32,16 @@ class Character extends Equatable {
   List get props => [value, color];
 }
 
+class Coord {
+  int x;
+  int y;
+
+  Coord(this.x, this.y);
+}
+
 class SudokuPattern {
   List<List<GridItems>> grid = [];
+  List<List<Coord>> regions = [];
 }
 
 SudokuPattern sudokuPattern = SudokuPattern()

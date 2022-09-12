@@ -1,5 +1,5 @@
 {
-    "editor.formatOnSave": false,
+    // "editor.formatOnSave": false,
     "editor.formatOnSaveMode": "modifications",
     "cSpell.words": [
         "autofocus",

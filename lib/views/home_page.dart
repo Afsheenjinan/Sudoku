@@ -87,7 +87,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // print(sudokuPattern.grid.);
     print("build");
     print(isCtrlPressed || isShiftPressed);
     if (_focusNode.hasFocus == false) _focusNode.requestFocus();
@@ -110,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                   child: Stack(
                     children: <Widget>[
                       SudokuGrid(width: 300),
-                      NumberGrid(gridPattern: sudokuPattern.grid, width: 300, isCtrl: isCtrlPressed, isShift: isShiftPressed),
+                      NumberGrid(gridPattern: sudokuPattern.grid, xCount :9, yCount:9,cellWidth: 36, isCtrl: isCtrlPressed, isShift: isShiftPressed),
                     ],
                   ),
                 ),

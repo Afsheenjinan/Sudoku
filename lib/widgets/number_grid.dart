@@ -6,12 +6,19 @@ import '../include/classes.dart';
 class NumberGrid extends StatefulWidget {
   final List<List<GridItems>> gridPattern;
 
-  final double width;
+  final double cellWidth;
+  final bool isCtrl,isShift;
+  final int xCount, yCount;
 
-  final bool isCtrl;
-  final bool isShift;
-
-  const NumberGrid({Key? key, required this.gridPattern, required this.width, required this.isCtrl, required this.isShift}) : super(key: key);
+  const NumberGrid(
+      {Key? key,
+      required this.gridPattern,
+      required this.cellWidth,
+      required this.isCtrl,
+      required this.isShift,
+      required this.xCount,
+      required this.yCount})
+      : super(key: key);
 
   @override
   State<NumberGrid> createState() => _NumberGridState();
@@ -31,8 +38,8 @@ class _NumberGridState extends State<NumberGrid> {
   Widget build(BuildContext context) {
     final List<GridItems> flattenGrid = widget.gridPattern.expand((element) => element).toList();
     return SizedBox(
-      height: widget.width,
-      width: widget.width,
+      height: widget.cellWidth* widget.yCount,
+      width: widget.cellWidth* widget.xCount,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 9,
@@ -112,7 +119,7 @@ class _NumberGridState extends State<NumberGrid> {
   }
 
   void onDrag(DragUpdateDetails details, int index) {
-    Offset offset = details.localPosition / (widget.width / 9);
+    Offset offset = details.localPosition / widget.cellWidth;
 
     int x = ((index % 9) + offset.dx.floor());
     int y = ((index ~/ 9) + offset.dy.floor());
