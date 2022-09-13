@@ -46,6 +46,8 @@ class Coord extends Equatable {
 
   const Coord(this.x, this.y);
 
+  get product => x * y;
+
   factory Coord.fromIndex(int index) {
     int x = index % 9;
     int y = index ~/ 9;
@@ -60,6 +62,7 @@ class Coord extends Equatable {
 
   @override
   List<Object?> get props => [x, y];
+
   @override
   String toString() => '($x,$y)';
 

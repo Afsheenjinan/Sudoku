@@ -113,7 +113,15 @@ class _HomePageState extends State<HomePage> {
                     children: <Widget>[
                       SudokuGrid(width: 9 * 36),
                       NumberGrid(
-                          gridPattern: sudokuPattern.grid, xCount: 9, yCount: 9, cellWidth: 36, isCtrl: isCtrlPressed, isShift: isShiftPressed),
+                        gridPattern: sudokuPattern.grid,
+                        size: Coord(9, 9),
+                        cellWidth: 36,
+                        isCtrl: isCtrlPressed,
+                        isShift: isShiftPressed,
+                        onPressed: selectContainer,
+                        onDragStart: onDragStart,
+                        onDrag: onDrag,
+                      ),
                     ],
                   ),
                 ),
@@ -258,4 +266,47 @@ class _HomePageState extends State<HomePage> {
       print("$coord = $char");
     }
   }
+  void selectContainer(int index, bool isCtrl, bool isShift) {
+    print("Container was tapped $index");
+
+    Coord xy = Coord.fromIndex(index);
+
+    if (!(isCtrl || isShift)) selectedCoordinates.clear();
+
+    if (selectedCoordinates.contains(xy)) {
+      selectedCoordinates.remove(xy);
+    } else {
+      selectedCoordinates.add(xy);
+    }
+
+    setState(() {});
+  }
+
+  void onDragStart(DragStartDetails details, bool isCtrl, bool isShift) {
+    setState(() {
+      if (!(isCtrl || isShift)) selectedCoordinates.clear();
+    });
+  }
+
+  void onDrag(DragUpdateDetails details, int index, double cellWidth, bool isCtrl) {
+    Offset offset = details.localPosition / cellWidth;
+    Coord xy = Coord.fromOffset(index, offset);
+    print("Container was draged $xy");
+
+    if (xy.x > 8 || xy.x < 0 || xy.y > 8 || xy.y < 0) return;
+    // print("$x, $y");
+    // print("${x + y * 9}");
+
+    // int value = x + y * 9;
+    // print(value);
+
+    if (isCtrl) {
+      if (selectedCoordinates.contains(xy)) selectedCoordinates.remove(xy);
+    } else {
+      if (!selectedCoordinates.contains(xy)) selectedCoordinates.add(xy);
+    }
+
+    setState(() {});
+  }
+  
 }
