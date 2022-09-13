@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+// ignore: constant_identifier_names
 enum PencilMark { Normal, Center, Corner }
 
+// ignore: constant_identifier_names
 enum NumberMode { Number, Letter, Colour }
 
-enum GameStatus { Playing, Paused, Won, lost }
+// ignore: constant_identifier_names
+enum GameStatus { Playing, Paused, Won, Lost }
 
-Set<int> selected = {};
 
 PencilMark getPencilMarkMode({required bool ctrl, required bool shift}) {
   return ctrl && shift

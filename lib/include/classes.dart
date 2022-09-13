@@ -17,32 +17,57 @@ class GridItems {
   void addCornerPencilMark(Character other) {
     cornerPencilMarks.contains(other) ? cornerPencilMarks.remove(other) : cornerPencilMarks.add(other);
   }
+
+  @override
+  String toString() => 'GridItem \n\tcharacter: $character\n\tcenterPencilMarks: $cornerPencilMarks\n\tcenterPencilMarks: $cornerPencilMarks';
 }
 
 class Character extends Equatable {
-  final dynamic value;
+  final int? number;
+  final String? letter;
   final Color? color;
 
-  const Character({this.value, this.color});
+  const Character({this.letter, this.number, this.color});
 
-  factory Character.fromValue(int val) => Character(value: val);
-  factory Character.fromColor(Color col) => Character(color: col);
+  factory Character.fromNumber(int n) => Character(number: n);
+  factory Character.fromLetter(String l) => Character(letter: l);
+  factory Character.fromColor(Color c) => Character(color: c);
 
   @override
-  List get props => [value, color];
+  List get props => [number, letter, color];
+
+  @override
+  String toString() => "${number ?? letter ?? 'RGB(${color?.red},${color?.green},${color?.blue})'}";
 }
 
-class Coord {
-  int x;
-  int y;
+class Coord extends Equatable {
+  final int x;
+  final int y;
 
-  Coord(this.x, this.y);
+  const Coord(this.x, this.y);
+
+  factory Coord.fromIndex(int index) {
+    int x = index % 9;
+    int y = index ~/ 9;
+    return Coord(x, y);
+  }
+
+  factory Coord.fromOffset(int index, Offset offset) {
+    int x = (index % 9) + offset.dx.floor();
+    int y = (index ~/ 9) + offset.dy.floor();
+    return Coord(x, y);
+  }
+
+  @override
+  List<Object?> get props => [x, y];
+  @override
+  String toString() => '($x,$y)';
+
 }
 
 class SudokuPattern {
   List<List<GridItems>> grid = [];
   List<List<Coord>> regions = [];
 }
+Set<Coord> selectedCoordinates = {};
 
-SudokuPattern sudokuPattern = SudokuPattern()
-  ..grid = List.generate(9, (index) => List.generate(9, (index) => GridItems()..character = Character(value: index + 1))..shuffle());

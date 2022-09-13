@@ -22,6 +22,9 @@ class _HomePageState extends State<HomePage> {
   PencilMark _pencilMarkMode = PencilMark.Normal;
   NumberMode _numberMode = NumberMode.Number;
 
+  SudokuPattern sudokuPattern = SudokuPattern()
+    ..grid = List.generate(9, (index) => List.generate(9, (index) => GridItems()..character = Character(number: index + 1))..shuffle());
+
   final List<bool> _pencilMarkButtonsSelected = [true, false, false];
   final List<bool> _numberModeButtons = [true, false, false];
 
@@ -41,38 +44,38 @@ class _HomePageState extends State<HomePage> {
     sudokuPattern.grid[0][8].character = null;
     sudokuPattern.grid[0][8].character = Character(color: Colors.amberAccent);
     // sudokuPattern.grid[0][8].backgroundColors.add(Colors.amber);
-    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(value: 5));
-    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(value: 6));
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(number: 5));
+    sudokuPattern.grid[0][6].centerPencilMarks.add(const Character(number: 6));
     sudokuPattern.grid[0][6].centerPencilMarks.addAll({const Character(color: Colors.brown)});
 
-    sudokuPattern.grid[5][3].character = Character(value: "D", color: Colors.yellow.shade300);
+    sudokuPattern.grid[5][3].character = Character(letter: "D", color: Colors.yellow.shade300);
 
-    sudokuPattern.grid[0][6].cornerPencilMarks.addAll({const Character(value: 7), const Character(value: 4), const Character(value: 3)});
+    sudokuPattern.grid[0][6].cornerPencilMarks.addAll({const Character(number: 7), const Character(number: 4), const Character(number: 3)});
     sudokuPattern.grid[6][5].character = null;
-    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(value: 7));
-    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(value: 5));
-    sudokuPattern.grid[6][5].cornerPencilMarks.addAll({const Character(value: 8), const Character(value: 5)});
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(number: 7));
+    sudokuPattern.grid[6][5].centerPencilMarks.add(const Character(number: 5));
+    sudokuPattern.grid[6][5].cornerPencilMarks.addAll({const Character(number: 8), const Character(number: 5)});
     sudokuPattern.grid[3][1].character = null;
     sudokuPattern.grid[3][1].centerPencilMarks.addAll({
-      const Character(value: 9),
-      const Character(value: 7),
-      const Character(value: 8),
-      const Character(value: 1),
-      const Character(value: 2),
-      const Character(value: 3)
+      const Character(number: 9),
+      const Character(number: 7),
+      const Character(number: 8),
+      const Character(number: 1),
+      const Character(number: 2),
+      const Character(number: 3)
     });
-    sudokuPattern.grid[3][1].cornerPencilMarks.add(const Character(value: 0));
+    sudokuPattern.grid[3][1].cornerPencilMarks.add(const Character(number: 0));
     sudokuPattern.grid[7][2].character = null;
     sudokuPattern.grid[7][2].centerPencilMarks.addAll({
-      const Character(value: 9),
-      const Character(value: 7),
-      const Character(value: 8),
-      const Character(value: 1),
-      const Character(value: 2),
+      const Character(number: 9),
+      const Character(number: 7),
+      const Character(number: 8),
+      const Character(number: 1),
+      const Character(number: 2),
     });
     sudokuPattern.grid[7][2].centerPencilMarks.addAll({const Character(color: Colors.brown), const Character(color: Colors.green)});
     sudokuPattern.grid[7][2].cornerPencilMarks.addAll({const Character(color: Colors.blue), const Character(color: Colors.orange)});
-    sudokuPattern.grid[7][2].cornerPencilMarks.add(const Character(value: 0));
+    sudokuPattern.grid[7][2].cornerPencilMarks.add(const Character(number: 0));
 
     super.initState();
   }
@@ -108,8 +111,9 @@ class _HomePageState extends State<HomePage> {
                   painter: BackgroundPainter(9, 9),
                   child: Stack(
                     children: <Widget>[
-                      SudokuGrid(width: 300),
-                      NumberGrid(gridPattern: sudokuPattern.grid, xCount :9, yCount:9,cellWidth: 36, isCtrl: isCtrlPressed, isShift: isShiftPressed),
+                      SudokuGrid(width: 9 * 36),
+                      NumberGrid(
+                          gridPattern: sudokuPattern.grid, xCount: 9, yCount: 9, cellWidth: 36, isCtrl: isCtrlPressed, isShift: isShiftPressed),
                     ],
                   ),
                 ),
@@ -125,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 40),
-                    NumberPad(buttonWidth: 36, pencilMark: _pencilMarkMode, numberMode: _numberMode),
+                    NumberPad(buttonWidth: 36, pencilMark: _pencilMarkMode, numberMode: _numberMode, onButtonTap: _onButtonTap),
                     const SizedBox(height: 40),
                     ModeSelectorButtons(
                       items: ["Normal", "Center", "Corner"],
@@ -226,6 +230,32 @@ class _HomePageState extends State<HomePage> {
       _numberModeButtons[index] = true;
       _numberMode = NumberMode.values[index];
       setState(() {});
+    }
+  }
+
+  void _onButtonTap(Character char) {
+    for (Coord coord in selectedCoordinates) {
+      // sudokuPattern[index] = value;
+
+      GridItems gridItems = sudokuPattern.grid[coord.y][coord.x];
+
+      switch (_pencilMarkMode) {
+        case PencilMark.Normal:
+          gridItems.addCharacter(char);
+          break;
+        case PencilMark.Corner:
+          gridItems.addCornerPencilMark(char);
+          break;
+        case PencilMark.Center:
+          gridItems.addCenterPencilMark(char);
+          break;
+        default:
+          break;
+      }
+      setState(() {});
+
+      print(sudokuPattern.grid[coord.y][coord.x]);
+      print("$coord = $char");
     }
   }
 }

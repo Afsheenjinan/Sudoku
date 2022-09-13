@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../data/data.dart';
 import '../include/classes.dart';
 
 class NumberGrid extends StatefulWidget {
@@ -41,34 +40,34 @@ class _NumberGridState extends State<NumberGrid> {
       height: widget.cellWidth* widget.yCount,
       width: widget.cellWidth* widget.xCount,
       child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 9,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: widget.xCount,
         ),
-        itemCount: 81,
+        itemCount: widget.xCount * widget.yCount,
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onPanStart: (details) => setState(() {
-              if (!(widget.isCtrl || widget.isShift)) selected.clear();
+              if (!(widget.isCtrl || widget.isShift)) selectedCoordinates.clear();
             }),
             onPanUpdate: (details) => onDrag(details, index),
             onTap: () => selectContainer(index),
             child: Container(
               padding: EdgeInsets.all(4),
               decoration: BoxDecoration(
-                  color: selected.contains(index)
+                  color: indexInSelected(index)
                       ? Colors.green.withOpacity(0.25)
                       : (flattenGrid[index].character?.color != null)
                           ? flattenGrid[index].character?.color
                           : Colors.transparent),
               // decoration: BoxDecoration(border: selected.contains(index) ? setBorder(index, Colors.green, 4) : null),
-              child: (flattenGrid[index].character?.value != null)
+              child: (flattenGrid[index].character?.number != null)
                   ? Align(
                       alignment: Alignment.center,
                       child: FittedBox(
                         // fit: BoxFit.scaleDown,
                         child: Text(
-                          flattenGrid[index].character!.value.toString(),
+                          flattenGrid[index].character!.number.toString(),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 24),
                         ),
                       ),
@@ -81,10 +80,10 @@ class _NumberGridState extends State<NumberGrid> {
                             fit: BoxFit.scaleDown,
                             child: Row(
                               children: [
-                                flattenGrid[index].cornerPencilMarks.map((e) => e.value).where((element) => element != null).join().isEmpty
+                                flattenGrid[index].cornerPencilMarks.map((e) => e.number).where((element) => element != null).join().isEmpty
                                     ? Text(" ")
                                     : Text(
-                                        flattenGrid[index].centerPencilMarks.map((e) => e.value).where((element) => element != null).join(),
+                                        flattenGrid[index].centerPencilMarks.map((e) => e.number).where((element) => element != null).join(),
                                         style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
                                       ),
                                 for (var i in flattenGrid[index].centerPencilMarks.map((e) => e.color).where((element) => element != null))
@@ -104,15 +103,22 @@ class _NumberGridState extends State<NumberGrid> {
     );
   }
 
+  bool indexInSelected(int index) {
+    Coord xy = Coord.fromIndex(index);
+    return selectedCoordinates.contains(xy);
+  }
+
   void selectContainer(int index) {
     print("Container was tapped $index");
 
-    if (!(widget.isCtrl || widget.isShift)) selected.clear();
+    Coord xy = Coord.fromIndex(index);
 
-    if (selected.contains(index)) {
-      selected.remove(index);
+    if (!(widget.isCtrl || widget.isShift)) selectedCoordinates.clear();
+
+    if (selectedCoordinates.contains(xy)) {
+      selectedCoordinates.remove(xy);
     } else {
-      selected.add(index);
+      selectedCoordinates.add(xy);
     }
 
     setState(() {});
@@ -120,21 +126,21 @@ class _NumberGridState extends State<NumberGrid> {
 
   void onDrag(DragUpdateDetails details, int index) {
     Offset offset = details.localPosition / widget.cellWidth;
+    Coord xy = Coord.fromOffset(index, offset);
+    print("Container was draged $xy");
 
-    int x = ((index % 9) + offset.dx.floor());
-    int y = ((index ~/ 9) + offset.dy.floor());
 
-    if (x > 8 || x < 0 || y > 8 || y < 0) return;
+    if (xy.x > 8 || xy.x < 0 || xy.y > 8 || xy.y < 0) return;
     // print("$x, $y");
     // print("${x + y * 9}");
 
-    int value = x + y * 9;
+    // int value = x + y * 9;
     // print(value);
 
     if (widget.isCtrl) {
-      if (selected.contains(value)) selected.remove(value);
+      if (selectedCoordinates.contains(xy)) selectedCoordinates.remove(xy);
     } else {
-      if (!selected.contains(value)) selected.add(value);
+      if (!selectedCoordinates.contains(xy)) selectedCoordinates.add(xy);
     }
 
     setState(() {});
@@ -144,10 +150,15 @@ class _NumberGridState extends State<NumberGrid> {
     int x = (index % 9);
     int y = (index ~/ 9);
 
-    int up = x + (y - 1) * 9;
-    int down = x + (y + 1) * 9;
-    int left = (x > 0) ? (x - 1) + y * 9 : -1;
-    int right = (x < 8) ? (x + 1) + y * 9 : -1;
+    Coord up = Coord(x, (y - 1));
+    Coord down = Coord(x, (y + 1));
+    Coord left = Coord((x - 1), y);
+    Coord right = Coord((x + 1), y);
+
+    // int up = x + (y - 1) * 9;
+    // int down = x + (y + 1) * 9;
+    // int left = (x > 0) ? (x - 1) + y * 9 : -1;
+    // int right = (x < 8) ? (x + 1) + y * 9 : -1;
     if (kDebugMode) {
       print("--------------------($x,$y)-----------------");
       print("     $up");
@@ -160,10 +171,10 @@ class _NumberGridState extends State<NumberGrid> {
     // BorderSide noBorder = BorderSide.none;
 
     return Border(
-      top: selected.contains(up) ? noBorder : borderSide,
-      left: selected.contains(left) ? noBorder : borderSide,
-      right: selected.contains(right) ? noBorder : borderSide,
-      bottom: selected.contains(down) ? noBorder : borderSide,
+      top: selectedCoordinates.contains(up) ? noBorder : borderSide,
+      left: selectedCoordinates.contains(left) ? noBorder : borderSide,
+      right: selectedCoordinates.contains(right) ? noBorder : borderSide,
+      bottom: selectedCoordinates.contains(down) ? noBorder : borderSide,
     );
 
     // return Border.lerp(
@@ -190,9 +201,9 @@ class CornerPencilMarksWidget extends StatelessWidget {
       alignment: alignment,
       child: ColoredBox(
         color: number.color ?? Colors.transparent,
-        child: (number.value != null)
+        child: (number.number != null)
             ? Text(
-                "${number.value}",
+                "${number.number}",
                 style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
               )
             : const SizedBox(
