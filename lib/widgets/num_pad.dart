@@ -41,7 +41,6 @@ class NumberPad extends StatelessWidget {
           } else {
             character = Character(color: lightThemeColourPalette[val]);
           }
-          print("value = $character");
           return SizedBox(
             height: buttonWidth,
             width: buttonWidth,

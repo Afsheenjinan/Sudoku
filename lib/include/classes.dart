@@ -19,7 +19,7 @@ class GridItems {
   }
 
   @override
-  String toString() => 'GridItem \n\tcharacter: $character\n\tcenterPencilMarks: $cornerPencilMarks\n\tcenterPencilMarks: $cornerPencilMarks';
+  String toString() => 'GridItem \n\tcharacter: $character\n\tcenterPencilMarks: $cornerPencilMarks\n\tcenterPencilMarks: $centerPencilMarks';
 }
 
 class Character extends Equatable {
@@ -32,6 +32,8 @@ class Character extends Equatable {
   factory Character.fromNumber(int n) => Character(number: n);
   factory Character.fromLetter(String l) => Character(letter: l);
   factory Character.fromColor(Color c) => Character(color: c);
+
+  String? getChar() => number?.toString() ?? letter;
 
   @override
   List get props => [number, letter, color];

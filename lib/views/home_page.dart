@@ -37,6 +37,9 @@ class _HomePageState extends State<HomePage> {
 
   bool isCtrlPressed = false;
   bool isShiftPressed = false;
+  
+  final double _cellWidth = 48;
+
 
   @override
   void initState() {
@@ -90,13 +93,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
     print("build");
-    print(isCtrlPressed || isShiftPressed);
     if (_focusNode.hasFocus == false) _focusNode.requestFocus();
     return KeyboardListener(
       focusNode: _focusNode,
       autofocus: true,
-      onKeyEvent: _onKeyEvent,
+      onKeyEvent: (event) => _onKeyEvent(event),
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
@@ -111,13 +114,11 @@ class _HomePageState extends State<HomePage> {
                   painter: BackgroundPainter(9, 9),
                   child: Stack(
                     children: <Widget>[
-                      SudokuGrid(width: 9 * 36),
+                      SudokuGrid(width: 9 * _cellWidth),
                       NumberGrid(
                         gridPattern: sudokuPattern.grid,
-                        size: Coord(9, 9),
-                        cellWidth: 36,
-                        isCtrl: isCtrlPressed,
-                        isShift: isShiftPressed,
+                        size: const Coord(9, 9),
+                        cellWidth: _cellWidth,
                         onPressed: selectContainer,
                         onDragStart: onDragStart,
                         onDrag: onDrag,
@@ -137,16 +138,16 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 40),
-                    NumberPad(buttonWidth: 36, pencilMark: _pencilMarkMode, numberMode: _numberMode, onButtonTap: _onButtonTap),
+                    NumberPad(buttonWidth: _cellWidth, pencilMark: _pencilMarkMode, numberMode: _numberMode, onButtonTap: _onButtonTap),
                     const SizedBox(height: 40),
                     ModeSelectorButtons(
-                      items: ["Normal", "Center", "Corner"],
+                      items: const ["Normal", "Center", "Corner"],
                       selectedItems: _pencilMarkButtonsSelected,
                       onPressed: _changePencilMarkMode,
                     ),
                     const SizedBox(height: 40),
                     ModeSelectorButtons(
-                      items: ["Number", "Letter", "Color"],
+                      items: const ["Number", "Letter", "Color"],
                       selectedItems: _numberModeButtons,
                       onPressed: _changeNumberMode,
                     ),
@@ -241,6 +242,28 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void selectContainer(int index) {
+    print("Container was tapped $index");
+
+    Coord xy = Coord.fromIndex(index);
+
+    if (!(isCtrlPressed || isShiftPressed)) selectedCoordinates.clear();
+
+    if (selectedCoordinates.contains(xy)) {
+      selectedCoordinates.remove(xy);
+    } else {
+      selectedCoordinates.add(xy);
+    }
+
+    setState(() {});
+  }
+
+  void onDragStart(DragStartDetails details) {
+    setState(() {
+      if (!(isCtrlPressed || isShiftPressed)) selectedCoordinates.clear();
+    });
+  }
+
   void _onButtonTap(Character char) {
     for (Coord coord in selectedCoordinates) {
       // sudokuPattern[index] = value;
@@ -266,29 +289,9 @@ class _HomePageState extends State<HomePage> {
       print("$coord = $char");
     }
   }
-  void selectContainer(int index, bool isCtrl, bool isShift) {
-    print("Container was tapped $index");
+ 
 
-    Coord xy = Coord.fromIndex(index);
-
-    if (!(isCtrl || isShift)) selectedCoordinates.clear();
-
-    if (selectedCoordinates.contains(xy)) {
-      selectedCoordinates.remove(xy);
-    } else {
-      selectedCoordinates.add(xy);
-    }
-
-    setState(() {});
-  }
-
-  void onDragStart(DragStartDetails details, bool isCtrl, bool isShift) {
-    setState(() {
-      if (!(isCtrl || isShift)) selectedCoordinates.clear();
-    });
-  }
-
-  void onDrag(DragUpdateDetails details, int index, double cellWidth, bool isCtrl) {
+  void onDrag(DragUpdateDetails details, int index, double cellWidth) {
     Offset offset = details.localPosition / cellWidth;
     Coord xy = Coord.fromOffset(index, offset);
     print("Container was draged $xy");
@@ -300,7 +303,7 @@ class _HomePageState extends State<HomePage> {
     // int value = x + y * 9;
     // print(value);
 
-    if (isCtrl) {
+    if (isCtrlPressed) {
       if (selectedCoordinates.contains(xy)) selectedCoordinates.remove(xy);
     } else {
       if (!selectedCoordinates.contains(xy)) selectedCoordinates.add(xy);

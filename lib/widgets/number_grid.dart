@@ -5,28 +5,25 @@ class NumberGrid extends StatelessWidget {
   final List<List<GridItems>> gridPattern;
 
   final double cellWidth;
-  final bool isCtrl, isShift;
   final Coord size;
 
   /// Takes the values [index] and [isCtrl] and returns their sum. Optionally a
   /// third parameter [c] can be provided and it will be added to the
   /// sum as well.
   /// @funParameter func(asd)
-  final void Function(int index, bool isCtrl, bool isShift) onPressed;
-  final void Function(DragUpdateDetails, int, double, bool) onDrag;
-  final void Function(DragStartDetails, bool, bool) onDragStart;
+  final void Function(int index) onPressed;
+  final void Function(DragUpdateDetails, int, double) onDrag;
+  final void Function(DragStartDetails) onDragStart;
 
-  NumberGrid({
-    Key? key,
-    required this.gridPattern,
-    required this.cellWidth,
-    required this.isCtrl,
-    required this.isShift,
-    required this.onPressed,
-    required this.size,
-    required this.onDrag,
-    required this.onDragStart,
-  }) : super(key: key);
+  NumberGrid(
+      {Key? key,
+      required this.gridPattern,
+      required this.cellWidth,
+      required this.size,
+      required this.onPressed,
+      required this.onDrag,
+      required this.onDragStart})
+      : super(key: key);
 
   final List<Alignment> cornerAlignmentList = [
     Alignment.topLeft,
@@ -49,11 +46,13 @@ class NumberGrid extends StatelessWidget {
         ),
         itemCount: size.product,
         itemBuilder: (BuildContext context, int index) {
+
+          String? char = flattenGrid[index].character?.getChar();
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => onPressed(index, isCtrl, isShift),
-            onPanStart: (details) => onDragStart(details, isCtrl, isShift),
-            onPanUpdate: (details) => onDrag(details, index, cellWidth, isCtrl),
+            onTap: () => onPressed(index),
+            onPanStart: (details) => onDragStart(details),
+            onPanUpdate: (details) => onDrag(details, index, cellWidth),
             child: Container(
               padding: EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -61,15 +60,15 @@ class NumberGrid extends StatelessWidget {
                       ? Colors.green.withOpacity(0.25)
                       : (flattenGrid[index].character?.color != null)
                           ? flattenGrid[index].character?.color
-                          : Colors.transparent),
+                          : null),
               // decoration: BoxDecoration(border: selected.contains(index) ? setBorder(index, Colors.green, 4) : null),
-              child: (flattenGrid[index].character?.number != null)
+              child: (char != null)
                   ? Align(
                       alignment: Alignment.center,
                       child: FittedBox(
                         // fit: BoxFit.scaleDown,
                         child: Text(
-                          flattenGrid[index].character!.number.toString(),
+                          char,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Consolas', fontSize: 24),
                         ),
                       ),
@@ -82,20 +81,38 @@ class NumberGrid extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             child: Row(
                               children: [
-                                flattenGrid[index].cornerPencilMarks.map((e) => e.number).where((element) => element != null).join().isEmpty
+                                flattenGrid[index]
+                                        .cornerPencilMarks
+                                        .map((e) => e.number ?? e.letter)
+                                        .where((element) => element != null)
+                                        .join()
+                                        .isEmpty
                                     ? Text(" ")
                                     : Text(
-                                        flattenGrid[index].centerPencilMarks.map((e) => e.number).where((element) => element != null).join(),
+                                        flattenGrid[index]
+                                            .centerPencilMarks
+                                            .map((e) => e.number ?? e.letter)
+                                            .where((element) => element != null)
+                                            .join(),
                                         style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
                                       ),
                                 for (var i in flattenGrid[index].centerPencilMarks.map((e) => e.color).where((element) => element != null))
-                                  Container(color: i, height: 6, width: 6)
+                                  Container(
+                                    // color: i,
+                                    height: cellWidth / 5,
+                                    width: cellWidth / 5,
+                                    decoration: BoxDecoration(color: i, border: Border.all(width: 0.1)),
+                                  )
                               ],
                             ),
                           ),
                         ),
                         for (Character item in flattenGrid[index].cornerPencilMarks)
-                          CornerPencilMarksWidget(alignment: cornerAlignmentList[flattenGrid[index].cornerPencilMarks.indexOf(item)], character: item)
+                          CornerPencilMarksWidget(
+                            alignment: cornerAlignmentList[flattenGrid[index].cornerPencilMarks.indexOf(item)],
+                            character: item,
+                            cellWidth: cellWidth,
+                          )
                       ],
                     ),
             ),
@@ -155,10 +172,11 @@ class NumberGrid extends StatelessWidget {
 }
 
 class CornerPencilMarksWidget extends StatelessWidget {
-  const CornerPencilMarksWidget({Key? key, required this.alignment, required this.character}) : super(key: key);
+  const CornerPencilMarksWidget({Key? key, required this.alignment, required this.character, required this.cellWidth}) : super(key: key);
 
   final Alignment alignment;
   final Character character;
+  final double cellWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -166,14 +184,14 @@ class CornerPencilMarksWidget extends StatelessWidget {
       alignment: alignment,
       child: ColoredBox(
         color: character.color ?? Colors.transparent,
-        child: (character.number != null)
+        child: (character.number != null || character.letter != null)
             ? Text(
-                "${character.number}",
-                style: const TextStyle(fontFamily: 'Consolas', fontSize: 10),
+                "${character.number ?? character.letter}",
+                style: const TextStyle(fontFamily: 'Consolas', fontSize: 12),
               )
-            : const SizedBox(
-                height: 6,
-                width: 6,
+            : SizedBox(
+                height: cellWidth / 5,
+                width: cellWidth / 5,
               ),
       ),
     );
